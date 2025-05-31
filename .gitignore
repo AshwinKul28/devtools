@@ -47,4 +47,10 @@ next-env.d.ts
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# Next.js build output
+.next
+.next/
+.next/*
+next-env.d.ts 

@@ -1,8 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/generators/person/page": "app/generators/person/page.js",
-  "/json/jwt/page": "app/json/jwt/page.js",
-  "/text/base32/page": "app/text/base32/page.js",
-  "/generators/uuid/page": "app/generators/uuid/page.js",
-  "/crypto/sha512/page": "app/crypto/sha512/page.js"
-}
