@@ -74,11 +74,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Google AdSense Script */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=your-adsense-client-id"
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1711684120101178"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body className={openSans.className}>
