@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-site-verification',
     other: {
-      'google-adsense-account': 'your-adsense-client-id' // Replace with your AdSense client ID
+      'google-adsense-account': 'ca-pub-1711684120101178' // Replace with your AdSense client ID
     }
   }
 }

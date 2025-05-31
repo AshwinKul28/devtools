@@ -33,7 +33,7 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
           display: 'block',
           ...style,
         }}
-        data-ad-client="your-adsense-client-id" // Replace with your AdSense client ID
+        data-ad-client="ca-pub-1711684120101178" // Replace with your AdSense client ID
         data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive="true"
