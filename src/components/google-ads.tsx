@@ -28,43 +28,65 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
   const [adLoaded, setAdLoaded] = useState(false)
   const adRef = useRef<HTMLDivElement>(null)
   const hasAttemptedLoad = useRef(false)
+  const retryTimeoutRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
     // Cleanup function to remove the slot from loaded slots when component unmounts
     return () => {
       loadedSlots.delete(slot)
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
     }
   }, [slot])
 
   useEffect(() => {
     let retryCount = 0
     const maxRetries = 5
-    let timeoutId: NodeJS.Timeout
 
     const loadAd = () => {
       // Don't try to load if we've already loaded this slot or attempted to load
       if (loadedSlots.has(slot) || hasAttemptedLoad.current) {
+        console.log(`Slot ${slot} already loaded or attempted`)
         return
       }
 
       try {
-        if (typeof window === 'undefined' || !window.adsbygoogle) {
+        if (typeof window === 'undefined') {
+          console.log('Window is undefined, retrying...')
           if (retryCount < maxRetries) {
             retryCount++
-            timeoutId = setTimeout(loadAd, 1000)
+            retryTimeoutRef.current = setTimeout(loadAd, 1000)
+          }
+          return
+        }
+
+        if (!window.adsbygoogle) {
+          console.log('AdSense script not loaded yet, retrying...')
+          if (retryCount < maxRetries) {
+            retryCount++
+            retryTimeoutRef.current = setTimeout(loadAd, 1000)
           }
           return
         }
 
         const container = adRef.current
-        if (!container) return
+        if (!container) {
+          console.log('Ad container not found, retrying...')
+          if (retryCount < maxRetries) {
+            retryCount++
+            retryTimeoutRef.current = setTimeout(loadAd, 1000)
+          }
+          return
+        }
 
         // Ensure container has dimensions
         const rect = container.getBoundingClientRect()
         if (rect.width === 0 || rect.height === 0) {
+          console.log(`Container has invalid dimensions: ${rect.width}x${rect.height}, retrying...`)
           if (retryCount < maxRetries) {
             retryCount++
-            timeoutId = setTimeout(loadAd, 1000)
+            retryTimeoutRef.current = setTimeout(loadAd, 1000)
           }
           return
         }
@@ -73,8 +95,10 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         hasAttemptedLoad.current = true
         loadedSlots.add(slot)
 
-        console.log(`Loading ad for slot: ${slot} with dimensions: ${rect.width}x${rect.height}`)
-        window.adsbygoogle.push({
+        console.log(`Attempting to load ad for slot: ${slot} with dimensions: ${rect.width}x${rect.height}`)
+        
+        // Push the ad configuration
+        (window.adsbygoogle = window.adsbygoogle || []).push({
           onload: () => {
             console.log(`Ad loaded successfully for slot: ${slot}`)
             setAdLoaded(true)
@@ -97,17 +121,18 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
     }
 
     // Initial load attempt
-    timeoutId = setTimeout(loadAd, 1000)
+    retryTimeoutRef.current = setTimeout(loadAd, 1000)
 
     // Cleanup function
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
       }
     }
   }, [slot])
 
   if (adError) {
+    console.log(`Ad error state for slot: ${slot}`)
     return null
   }
 
@@ -115,6 +140,7 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
     minHeight: format === 'vertical' ? '600px' : '90px',
     minWidth: format === 'vertical' ? '300px' : '728px',
     position: 'relative' as const,
+    display: 'block',
     ...style
   }
 
@@ -134,7 +160,9 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         style={{
           display: 'block',
           width: '100%',
-          height: '100%'
+          height: '100%',
+          minHeight: format === 'vertical' ? '600px' : '90px',
+          minWidth: format === 'vertical' ? '300px' : '728px'
         }}
         data-ad-client="ca-pub-1711684120101178"
         data-ad-slot={slot}
