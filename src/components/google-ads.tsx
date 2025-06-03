@@ -32,26 +32,44 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
   }, [slot])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || loadedSlots.has(slot) || hasAttemptedLoad.current) {
+    if (typeof window === 'undefined' || hasAttemptedLoad.current) {
       return
     }
 
-    try {
-      // Initialize adsbygoogle if it doesn't exist
-      if (!Array.isArray(window.adsbygoogle)) {
-        window.adsbygoogle = []
+    const loadAd = () => {
+      try {
+        // Initialize adsbygoogle if it doesn't exist
+        window.adsbygoogle = window.adsbygoogle || []
+        
+        // Only push if we haven't attempted to load this ad yet
+        if (!hasAttemptedLoad.current) {
+          hasAttemptedLoad.current = true
+          window.adsbygoogle.push({})
+        }
+      } catch (err) {
+        console.error('Error loading Google Ad:', err)
+        setAdError(true)
+        hasAttemptedLoad.current = false
       }
+    }
 
-      // Mark that we've attempted to load this ad
-      hasAttemptedLoad.current = true
-      loadedSlots.add(slot)
+    // Wait for the AdSense script to load
+    if (window.adsbygoogle) {
+      loadAd()
+    } else {
+      // If script isn't loaded yet, wait for it
+      const checkAdsbyGoogle = setInterval(() => {
+        if (window.adsbygoogle) {
+          clearInterval(checkAdsbyGoogle)
+          loadAd()
+        }
+      }, 100)
 
-      // Push the ad configuration exactly as provided by AdSense
-      window.adsbygoogle.push({})
-    } catch (err) {
-      console.error('Error loading Google Ad:', err)
-      setAdError(true)
-      loadedSlots.delete(slot)
+      // Cleanup interval after 10 seconds
+      setTimeout(() => clearInterval(checkAdsbyGoogle), 10000)
+    }
+
+    return () => {
       hasAttemptedLoad.current = false
     }
   }, [slot])

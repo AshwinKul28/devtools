@@ -4,6 +4,7 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
+import Script from 'next/script'
 
 const openSans = Open_Sans({ 
   subsets: ['latin'],
@@ -72,8 +73,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          async
+        <Script
+          id="adsbygoogle-init"
+          strategy="afterInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1711684120101178"
           crossOrigin="anonymous"
         />
