@@ -20,19 +20,46 @@ const loadedSlots = new Set<string>()
 
 export default function GoogleAd({ slot, format = 'auto', style, className }: GoogleAdProps) {
   const [adError, setAdError] = useState(false)
-  const [adLoaded, setAdLoaded] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
   const adRef = useRef<HTMLDivElement>(null)
-  const hasAttemptedLoad = useRef(false)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+
+  // Set dimensions based on format
+  const dimensions = {
+    horizontal: { width: '728px', height: '90px' },
+    vertical: { width: '300px', height: '600px' },
+    square: { width: '300px', height: '300px' }
+  }
+
+  const formatDimensions = dimensions[format as keyof typeof dimensions] || dimensions.horizontal
 
   useEffect(() => {
-    // Cleanup function to remove the slot from loaded slots when component unmounts
-    return () => {
-      loadedSlots.delete(slot)
+    // Set up intersection observer to detect when ad container is visible
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+            observerRef.current?.disconnect()
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+
+    if (adRef.current) {
+      observerRef.current.observe(adRef.current)
     }
-  }, [slot])
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || hasAttemptedLoad.current) {
+    if (!isVisible || typeof window === 'undefined' || loadedSlots.has(slot)) {
       return
     }
 
@@ -41,15 +68,25 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         // Initialize adsbygoogle if it doesn't exist
         window.adsbygoogle = window.adsbygoogle || []
         
-        // Only push if we haven't attempted to load this ad yet
-        if (!hasAttemptedLoad.current) {
-          hasAttemptedLoad.current = true
-          window.adsbygoogle.push({})
+        // Only load if the container has dimensions
+        const container = adRef.current
+        if (!container) return
+
+        const rect = container.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) {
+          console.log('Container has no dimensions, waiting...')
+          return
         }
+
+        // Mark this slot as loaded
+        loadedSlots.add(slot)
+
+        // Push the ad configuration
+        window.adsbygoogle.push({})
       } catch (err) {
         console.error('Error loading Google Ad:', err)
         setAdError(true)
-        hasAttemptedLoad.current = false
+        loadedSlots.delete(slot)
       }
     }
 
@@ -57,7 +94,6 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
     if (window.adsbygoogle) {
       loadAd()
     } else {
-      // If script isn't loaded yet, wait for it
       const checkAdsbyGoogle = setInterval(() => {
         if (window.adsbygoogle) {
           clearInterval(checkAdsbyGoogle)
@@ -70,22 +106,13 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
     }
 
     return () => {
-      hasAttemptedLoad.current = false
+      loadedSlots.delete(slot)
     }
-  }, [slot])
+  }, [slot, isVisible])
 
   if (adError) {
     return null
   }
-
-  // Set dimensions based on format
-  const dimensions = {
-    horizontal: { width: '728px', height: '90px' },
-    vertical: { width: '300px', height: '600px' },
-    square: { width: '300px', height: '300px' }
-  }
-
-  const formatDimensions = dimensions[format as keyof typeof dimensions] || dimensions.horizontal
 
   return (
     <div 
@@ -96,6 +123,8 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         display: 'block',
         width: formatDimensions.width,
         height: formatDimensions.height,
+        minWidth: formatDimensions.width,
+        minHeight: formatDimensions.height,
         ...style
       }}
     >
@@ -104,7 +133,9 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         style={{
           display: 'block',
           width: '100%',
-          height: '100%'
+          height: '100%',
+          minWidth: formatDimensions.width,
+          minHeight: formatDimensions.height
         }}
         data-ad-client="ca-pub-1711684120101178"
         data-ad-slot={slot}
