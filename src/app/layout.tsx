@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
 import Script from 'next/script'
+import GoogleAd from '@/components/google-ads'
 
 const openSans = Open_Sans({ 
   subsets: ['latin'],
@@ -87,6 +88,13 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <div className="w-full border-t border-gray-800">
+            <GoogleAd
+              slot="5477985519"
+              format="horizontal"
+              className="w-[728px] h-[90px] mx-auto my-4"
+            />
+          </div>
         </div>
         <Toaster position="bottom-right" />
       </body>

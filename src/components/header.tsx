@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { FiMenu, FiX, FiHome } from 'react-icons/fi'
 import Link from 'next/link'
-import GoogleAd from './google-ads'
 
 const categories = [
   {
@@ -70,15 +69,6 @@ export default function Header() {
                 ? <FiX size={24} color={isHamburgerHovered ? '#0ea5e9' : undefined} />
                 : <FiMenu size={24} color={isHamburgerHovered ? '#0ea5e9' : undefined} />}
             </button>
-          </div>
-
-          {/* Header Ad - Only visible on larger screens */}
-          <div className="hidden lg:flex items-center justify-center flex-1 mx-4">
-            <GoogleAd
-              slot="5477985519"
-              format="horizontal"
-              className="w-[728px] h-[90px]"
-            />
           </div>
 
           <div className="flex items-center space-x-2">
