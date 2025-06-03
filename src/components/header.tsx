@@ -75,7 +75,7 @@ export default function Header() {
           {/* Header Ad - Only visible on larger screens */}
           <div className="hidden lg:flex items-center justify-center flex-1 mx-4">
             <GoogleAd
-              slot="header-ad-slot"
+              slot="5477985519"
               format="horizontal"
               className="w-[728px] h-[90px]"
             />
