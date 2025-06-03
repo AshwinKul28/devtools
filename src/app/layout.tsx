@@ -54,34 +54,31 @@ export const metadata: Metadata = {
       follow: true,
       'max-video-preview': -1,
       'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+      'max-snippet': -1
+    }
   },
   verification: {
     google: 'your-google-site-verification',
     other: {
-      'google-adsense-account': 'ca-pub-1711684120101178' // Replace with your AdSense client ID
+      'google-adsense-account': 'ca-pub-1711684120101178'
     }
   }
 }
 
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Google AdSense Script */}
+      <body className={openSans.className}>
         <Script
           id="adsbygoogle-init"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1711684120101178"
           crossOrigin="anonymous"
         />
-      </head>
-      <body className={openSans.className}>
         <div className="min-h-screen flex flex-col bg-[#1a1b1e] text-[#e4e4e7]">
           <Header />
           <main className="flex-grow">

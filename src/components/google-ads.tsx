@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface GoogleAdProps {
   slot: string
@@ -20,51 +20,112 @@ declare global {
   }
 }
 
+// Keep track of loaded slots to prevent duplicate loads
+const loadedSlots = new Set<string>()
+
 export default function GoogleAd({ slot, format = 'auto', style, className }: GoogleAdProps) {
   const [adError, setAdError] = useState(false)
   const [adLoaded, setAdLoaded] = useState(false)
+  const adRef = useRef<HTMLDivElement>(null)
+  const hasAttemptedLoad = useRef(false)
 
   useEffect(() => {
+    // Cleanup function to remove the slot from loaded slots when component unmounts
+    return () => {
+      loadedSlots.delete(slot)
+    }
+  }, [slot])
+
+  useEffect(() => {
+    let retryCount = 0
+    const maxRetries = 5
+    let timeoutId: NodeJS.Timeout
+
     const loadAd = () => {
+      // Don't try to load if we've already loaded this slot or attempted to load
+      if (loadedSlots.has(slot) || hasAttemptedLoad.current) {
+        return
+      }
+
       try {
-        // Check if adsbygoogle is available
-        if (typeof window !== 'undefined' && window.adsbygoogle) {
-          console.log(`Attempting to load ad for slot: ${slot}`)
-          // Push the ad to the adsbygoogle queue
-          const config: AdSenseConfig = {
-            onload: () => {
-              console.log(`Ad loaded successfully for slot: ${slot}`)
-              setAdLoaded(true)
-            },
-            onerror: (error: any) => {
-              console.error(`Ad failed to load for slot: ${slot}`, error)
-              setAdError(true)
-            }
+        if (typeof window === 'undefined' || !window.adsbygoogle) {
+          if (retryCount < maxRetries) {
+            retryCount++
+            timeoutId = setTimeout(loadAd, 1000)
           }
-          window.adsbygoogle.push(config)
-        } else {
-          console.warn('AdSense script not loaded yet')
+          return
         }
+
+        const container = adRef.current
+        if (!container) return
+
+        // Ensure container has dimensions
+        const rect = container.getBoundingClientRect()
+        if (rect.width === 0 || rect.height === 0) {
+          if (retryCount < maxRetries) {
+            retryCount++
+            timeoutId = setTimeout(loadAd, 1000)
+          }
+          return
+        }
+
+        // Mark that we've attempted to load this ad
+        hasAttemptedLoad.current = true
+        loadedSlots.add(slot)
+
+        console.log(`Loading ad for slot: ${slot} with dimensions: ${rect.width}x${rect.height}`)
+        window.adsbygoogle.push({
+          onload: () => {
+            console.log(`Ad loaded successfully for slot: ${slot}`)
+            setAdLoaded(true)
+          },
+          onerror: (error: any) => {
+            console.error(`Ad failed to load for slot: ${slot}`, error)
+            setAdError(true)
+            // Remove from loaded slots if there was an error
+            loadedSlots.delete(slot)
+            hasAttemptedLoad.current = false
+          }
+        })
       } catch (err) {
         console.error('Error loading Google Ad:', err)
         setAdError(true)
+        // Remove from loaded slots if there was an error
+        loadedSlots.delete(slot)
+        hasAttemptedLoad.current = false
       }
     }
 
-    // Try to load the ad after a short delay to ensure the script is ready
-    const timer = setTimeout(loadAd, 1000)
-    return () => clearTimeout(timer)
-  }, [slot]) // Add slot to dependency array
+    // Initial load attempt
+    timeoutId = setTimeout(loadAd, 1000)
+
+    // Cleanup function
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
+  }, [slot])
 
   if (adError) {
-    console.warn(`Ad error for slot: ${slot}`)
     return null
   }
 
+  const containerStyle = {
+    minHeight: format === 'vertical' ? '600px' : '90px',
+    minWidth: format === 'vertical' ? '300px' : '728px',
+    position: 'relative' as const,
+    ...style
+  }
+
   return (
-    <div className={`google-ad-container ${className || ''}`} style={style}>
+    <div 
+      ref={adRef}
+      className={`google-ad-container ${className || ''}`} 
+      style={containerStyle}
+    >
       {!adLoaded && !adError && (
-        <div className="text-center text-gray-400 text-sm py-2">
+        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
           Loading ad...
         </div>
       )}
@@ -72,7 +133,8 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         className="adsbygoogle"
         style={{
           display: 'block',
-          ...style,
+          width: '100%',
+          height: '100%'
         }}
         data-ad-client="ca-pub-1711684120101178"
         data-ad-slot={slot}
