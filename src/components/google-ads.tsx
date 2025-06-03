@@ -9,11 +9,6 @@ interface GoogleAdProps {
   className?: string
 }
 
-interface AdSenseConfig {
-  onload?: () => void
-  onerror?: (error: any) => void
-}
-
 declare global {
   interface Window {
     adsbygoogle: any[]
@@ -28,153 +23,75 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
   const [adLoaded, setAdLoaded] = useState(false)
   const adRef = useRef<HTMLDivElement>(null)
   const hasAttemptedLoad = useRef(false)
-  const retryTimeoutRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
     // Cleanup function to remove the slot from loaded slots when component unmounts
     return () => {
       loadedSlots.delete(slot)
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current)
-      }
     }
   }, [slot])
 
   useEffect(() => {
-    let retryCount = 0
-    const maxRetries = 5
-
-    const loadAd = () => {
-      // Don't try to load if we've already loaded this slot or attempted to load
-      if (loadedSlots.has(slot) || hasAttemptedLoad.current) {
-        console.log(`Slot ${slot} already loaded or attempted`)
-        return
-      }
-
-      try {
-        if (typeof window === 'undefined') {
-          console.log('Window is undefined, retrying...')
-          if (retryCount < maxRetries) {
-            retryCount++
-            retryTimeoutRef.current = setTimeout(loadAd, 1000)
-          }
-          return
-        }
-
-        if (!window.adsbygoogle) {
-          console.log('AdSense script not loaded yet, retrying...')
-          if (retryCount < maxRetries) {
-            retryCount++
-            retryTimeoutRef.current = setTimeout(loadAd, 1000)
-          }
-          return
-        }
-
-        const container = adRef.current
-        if (!container) {
-          console.log('Ad container not found, retrying...')
-          if (retryCount < maxRetries) {
-            retryCount++
-            retryTimeoutRef.current = setTimeout(loadAd, 1000)
-          }
-          return
-        }
-
-        // Ensure container has dimensions
-        const rect = container.getBoundingClientRect()
-        if (rect.width === 0 || rect.height === 0) {
-          console.log(`Container has invalid dimensions: ${rect.width}x${rect.height}, retrying...`)
-          if (retryCount < maxRetries) {
-            retryCount++
-            retryTimeoutRef.current = setTimeout(loadAd, 1000)
-          }
-          return
-        }
-
-        // Mark that we've attempted to load this ad
-        hasAttemptedLoad.current = true
-        loadedSlots.add(slot)
-
-        // Initialize adsbygoogle if it doesn't exist
-        if (!Array.isArray(window.adsbygoogle)) {
-          window.adsbygoogle = []
-        }
-
-        // Log the attempt
-        console.log(`Attempting to load ad for slot: ${slot} with dimensions: ${rect.width}x${rect.height}`)
-        
-        // Push the ad configuration
-        window.adsbygoogle.push({
-          onload: () => {
-            console.log(`Ad loaded successfully for slot: ${slot}`)
-            setAdLoaded(true)
-          },
-          onerror: (error: any) => {
-            console.error(`Ad failed to load for slot: ${slot}`, error)
-            setAdError(true)
-            // Remove from loaded slots if there was an error
-            loadedSlots.delete(slot)
-            hasAttemptedLoad.current = false
-          }
-        })
-      } catch (err) {
-        console.error('Error loading Google Ad:', err)
-        setAdError(true)
-        // Remove from loaded slots if there was an error
-        loadedSlots.delete(slot)
-        hasAttemptedLoad.current = false
-      }
+    if (typeof window === 'undefined' || loadedSlots.has(slot) || hasAttemptedLoad.current) {
+      return
     }
 
-    // Initial load attempt
-    retryTimeoutRef.current = setTimeout(loadAd, 1000)
-
-    // Cleanup function
-    return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current)
+    try {
+      // Initialize adsbygoogle if it doesn't exist
+      if (!Array.isArray(window.adsbygoogle)) {
+        window.adsbygoogle = []
       }
+
+      // Mark that we've attempted to load this ad
+      hasAttemptedLoad.current = true
+      loadedSlots.add(slot)
+
+      // Push the ad configuration exactly as provided by AdSense
+      window.adsbygoogle.push({})
+    } catch (err) {
+      console.error('Error loading Google Ad:', err)
+      setAdError(true)
+      loadedSlots.delete(slot)
+      hasAttemptedLoad.current = false
     }
   }, [slot])
 
   if (adError) {
-    console.log(`Ad error state for slot: ${slot}`)
     return null
   }
 
-  const containerStyle = {
-    minHeight: format === 'vertical' ? '600px' : '90px',
-    minWidth: format === 'vertical' ? '300px' : '728px',
-    position: 'relative' as const,
-    display: 'block',
-    ...style
+  // Set dimensions based on format
+  const dimensions = {
+    horizontal: { width: '728px', height: '90px' },
+    vertical: { width: '300px', height: '600px' },
+    square: { width: '300px', height: '300px' }
   }
+
+  const formatDimensions = dimensions[format as keyof typeof dimensions] || dimensions.horizontal
 
   return (
     <div 
       ref={adRef}
       className={`google-ad-container ${className || ''}`} 
-      style={containerStyle}
+      style={{
+        position: 'relative',
+        display: 'block',
+        width: formatDimensions.width,
+        height: formatDimensions.height,
+        ...style
+      }}
     >
-      {!adLoaded && !adError && (
-        <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-          Loading ad...
-        </div>
-      )}
       <ins
         className="adsbygoogle"
         style={{
           display: 'block',
           width: '100%',
-          height: '100%',
-          minHeight: format === 'vertical' ? '600px' : '90px',
-          minWidth: format === 'vertical' ? '300px' : '728px'
+          height: '100%'
         }}
         data-ad-client="ca-pub-1711684120101178"
         data-ad-slot={slot}
-        data-ad-format={format}
+        data-ad-format="auto"
         data-full-width-responsive="true"
-        data-adtest={process.env.NODE_ENV === 'development' ? 'on' : 'off'}
       />
     </div>
   )

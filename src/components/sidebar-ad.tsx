@@ -4,7 +4,7 @@ import GoogleAd from './google-ads'
 
 export default function SidebarAd() {
   return (
-    <div className="hidden lg:block w-[300px] sticky top-4">
+    <div className="w-full flex justify-center py-4">
       <GoogleAd
         slot="3155299840"
         format="vertical"
