@@ -4,7 +4,6 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import Header from '@/components/header'
 import Footer from '@/components/footer'
-import Script from 'next/script'
 
 const openSans = Open_Sans({ 
   subsets: ['latin'],
@@ -72,13 +71,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={openSans.className}>
-        <Script
-          id="adsbygoogle-init"
-          strategy="lazyOnload"
+      <head>
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1711684120101178"
           crossOrigin="anonymous"
         />
+      </head>
+      <body className={openSans.className}>
         <div className="min-h-screen flex flex-col bg-[#1a1b1e] text-[#e4e4e7]">
           <Header />
           <main className="flex-grow">
