@@ -16,7 +16,7 @@ interface AdSenseConfig {
 
 declare global {
   interface Window {
-    adsbygoogle: (AdSenseConfig | {})[]
+    adsbygoogle: any[]
   }
 }
 
@@ -95,10 +95,16 @@ export default function GoogleAd({ slot, format = 'auto', style, className }: Go
         hasAttemptedLoad.current = true
         loadedSlots.add(slot)
 
+        // Initialize adsbygoogle if it doesn't exist
+        if (!Array.isArray(window.adsbygoogle)) {
+          window.adsbygoogle = []
+        }
+
+        // Log the attempt
         console.log(`Attempting to load ad for slot: ${slot} with dimensions: ${rect.width}x${rect.height}`)
         
         // Push the ad configuration
-        (window.adsbygoogle = window.adsbygoogle || []).push({
+        window.adsbygoogle.push({
           onload: () => {
             console.log(`Ad loaded successfully for slot: ${slot}`)
             setAdLoaded(true)
