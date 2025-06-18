@@ -24,19 +24,14 @@ const categories = [
     ],
   },
   {
-    name: 'Media',
-    tools: [
-      { name: 'Image to Base64', path: '/media/image' },
-      { name: 'File to Base64', path: '/media/file' },
-    ],
-  },
-  {
     name: 'JSON Tools',
     tools: [
       { name: 'JSON Beautifier', path: '/json/beautify' },
+      { name: 'JSON Compare', path: '/json/compare' },
       { name: 'JWT Decoder', path: '/json/jwt' },
       { name: 'JSON Stringify', path: '/json/stringify' },
       { name: 'XML Decoder', path: '/json/xml' },
+      { name: 'JSON Tree Visualizer', path: '/json/tree' },
     ],
   },
   {
@@ -45,6 +40,25 @@ const categories = [
       { name: 'Random Text', path: '/generators/text' },
       { name: 'Person Data', path: '/generators/person' },
       { name: 'Number Generator', path: '/generators/numbers' },
+      { name: 'UUID Generator', path: '/generators/uuid' },
+    ],
+  },
+  {
+    name: 'Visual Tools',
+    tools: [
+      { name: 'Image to Base64', path: '/media/image' },
+      { name: 'File to Base64', path: '/media/file' },
+      { name: 'QR Code Generator', path: '/qr/encode' },
+      { name: 'QR Code Scanner', path: '/qr/decode' },
+    ],
+  },
+  {
+    name: 'API Tools',
+    tools: [
+      { name: 'API Request Builder', path: '/api/request' },
+      { name: 'API Documentation Generator', path: '/api/docs' },
+      { name: 'GraphQL Explorer', path: '/api/graphql' },
+      { name: 'API Performance Tester', path: '/api/performance' },
     ],
   },
 ]
@@ -52,6 +66,22 @@ const categories = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isHamburgerHovered, setIsHamburgerHovered] = useState(false)
+  const [sidebarSearch, setSidebarSearch] = useState('')
+
+  // Flatten all tools for search
+  const allTools = categories.flatMap(cat => cat.tools.map(tool => ({ ...tool, category: cat.name })))
+  const filteredTools = sidebarSearch.length >= 1
+    ? allTools.filter(tool => tool.name.toLowerCase().includes(sidebarSearch.toLowerCase()))
+    : null
+
+  // Group filtered tools by category
+  const filteredByCategory = filteredTools
+    ? filteredTools.reduce((acc, tool) => {
+        if (!acc[tool.category]) acc[tool.category] = []
+        acc[tool.category].push(tool)
+        return acc
+      }, {} as Record<string, typeof allTools>)
+    : {}
 
   return (
     <header className="bg-[#2a2b2e] border-b border-[#3a3b3e]">
@@ -90,25 +120,59 @@ export default function Header() {
         } w-64 bg-[#2a2b2e] border-r border-[#3a3b3e] transition-transform duration-200 ease-in-out z-50`}
       >
         <div className="h-full overflow-y-auto py-6 px-4">
-          {categories.map((category) => (
-            <div key={category.name} className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                {category.name}
-              </h3>
-              <div className="space-y-1">
-                {category.tools.map((tool) => (
-                  <Link
-                    key={tool.name}
-                    href={tool.path}
-                    className="block px-3 py-2 rounded-md text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {tool.name}
-                  </Link>
-                ))}
+          {/* Sidebar Search */}
+          <input
+            type="text"
+            value={sidebarSearch}
+            onChange={e => setSidebarSearch(e.target.value)}
+            placeholder="Search tools..."
+            className="glass-input w-full px-3 py-2 mb-4 text-base rounded shadow"
+            autoFocus={isMenuOpen}
+          />
+          {/* Show filtered tools if searching, else show all categories */}
+          {sidebarSearch.length >= 1 ? (
+            Object.keys(filteredByCategory).length === 0 ? (
+              <div className="text-gray-400 text-sm">No tools found.</div>
+            ) : (
+              Object.entries(filteredByCategory).map(([cat, tools]) => (
+                <div key={cat} className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">{cat}</h3>
+                  <div className="space-y-1">
+                    {tools.map(tool => (
+                      <Link
+                        key={tool.name}
+                        href={tool.path}
+                        className="block px-3 py-2 rounded-md text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {tool.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )
+          ) : (
+            categories.map((category) => (
+              <div key={category.name} className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  {category.name}
+                </h3>
+                <div className="space-y-1">
+                  {category.tools.map((tool) => (
+                    <Link
+                      key={tool.name}
+                      href={tool.path}
+                      className="block px-3 py-2 rounded-md text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {tool.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

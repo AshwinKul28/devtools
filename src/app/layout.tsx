@@ -15,10 +15,10 @@ const openSans = Open_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'DevToolsLab - Developer Tools & Utilities',
-    template: '%s | DevToolsLab'
+    default: 'TechToolbox - Developer Tools & Utilities',
+    template: '%s | TechToolbox'
   },
-  description: 'DevToolsLab is your all-in-one tech tool box and developer toolbox, offering a comprehensive collection of online developer tools, encoding/decoding utilities, API testing tools, code utilities, and productivity resources for programmers and web developers. Boost your workflow with our powerful, easy-to-use web utilities and software toolbox.',
+  description: 'TechToolbox is your all-in-one tech tool box and developer toolbox, offering a comprehensive collection of online developer tools, encoding/decoding utilities, API testing tools, code utilities, and productivity resources for programmers and web developers. Boost your workflow with our powerful, easy-to-use web utilities and software toolbox.',
   keywords: [
     'developer tools',
     'tech tool box',
@@ -115,9 +115,9 @@ export const metadata: Metadata = {
     'online text tools',
     'online QR code generator'
   ],
-  authors: [{ name: 'DevToolsLab Team' }],
-  creator: 'DevToolsLab',
-  publisher: 'DevToolsLab',
+  authors: [{ name: 'TechToolbox Team' }],
+  creator: 'TechToolbox',
+  publisher: 'TechToolbox',
   metadataBase: new URL('https://techtoolbox.site'),
   alternates: {
     canonical: 'https://techtoolbox.site/'

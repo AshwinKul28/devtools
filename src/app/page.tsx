@@ -14,6 +14,7 @@ const TOOLS = [
   { name: 'SHA-256 Hash', path: '/crypto/sha256' },
   { name: 'SHA-512 Hash', path: '/crypto/sha512' },
   { name: 'JSON Beautifier', path: '/json/beautify' },
+  { name: 'JSON Compare', path: '/json/compare' },
   { name: 'JWT Decoder', path: '/json/jwt' },
   { name: 'JSON Stringify', path: '/json/stringify' },
   { name: 'XML Decoder', path: '/json/xml' },
@@ -144,6 +145,9 @@ export default function Home() {
             <div className="space-y-0.5">
               <Link href="/json/beautify" className="block p-2 rounded text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]">
                 JSON Beautifier
+              </Link>
+              <Link href="/json/compare" className="block p-2 rounded text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]">
+                JSON Compare
               </Link>
               <Link href="/json/jwt" className="block p-2 rounded text-gray-300 hover:text-white transition-all duration-300 hover:bg-gradient-to-r hover:from-[#1e3a8a]/30 hover:via-[#0ea5e9]/20 hover:to-[#1e3a8a]/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] hover:scale-[1.02]">
                 JWT Decoder

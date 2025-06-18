@@ -20,6 +20,7 @@
     "js-base64": "^3.7.5",
     "jsonwebtoken": "^9.0.2",
     "jsqr": "^1.4.0",
+    "lucide-react": "^0.517.0",
     "next": "14.1.0",
     "postcss": "^8.4.35",
     "qrcode.react": "^4.2.0",
@@ -33,6 +34,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@types/crypto-js": "^4.2.2",
     "@types/js-base64": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.5",
